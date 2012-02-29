@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use POSIX qw(strftime);
 use LWP::Simple;
+use File::Basename;
 
 # this one you can get with firebug or from proxy log files:
 my $playlist_url = 'http://188.254.112.50/variant.m3u8?cid=08ace5a8-46c5-11e1-be30-f0def1c2c06e&var=orig';
@@ -16,6 +17,11 @@ my $target_basename = 'camera01';
 
 # camera timezone:
 my $uik_tz = 'Asia/Krasnoyarsk';
+
+# if you have s3 access and s3cmd installed/configured, I can upload torrent files to this bucket:
+my $s3_bucket = 's3://webvybory2012.vnaum.com';
+# otherwise, uncomment this:
+# my $s3_bucket = undef;
 
 sub make_torrent($);
 
@@ -77,12 +83,20 @@ sub make_torrent($);
 sub make_torrent($)
 {
   my ($file) = @_;
-  my @cmd = (qw(btmakemetafile.bittornado http://tracker.thepiratebay.org/announce),
-    $file,
-    qw(--announce_list http://tracker.thepiratebay.org/announce|udp://tracker.openbittorrent.com:80|udp://tracker.publicbt.com:80|udp://tracker.istole.it:80|udp://tracker.ccc.de:80|http://tracker.hexagon.cc:2710/announce)
-  );
-  use Data::Dumper;
-  print Dumper \@cmd;
-  system(@cmd) == 0
-    or warn "system @cmd failed: $?";
+  {
+    my @cmd = (qw(btmakemetafile.bittornado http://tracker.thepiratebay.org/announce),
+      $file,
+      qw(--announce_list http://tracker.thepiratebay.org/announce|udp://tracker.openbittorrent.com:80|udp://tracker.publicbt.com:80|udp://tracker.istole.it:80|udp://tracker.ccc.de:80|http://tracker.hexagon.cc:2710/announce)
+    );
+    system(@cmd) == 0
+      or warn "system @cmd failed: $?";
+  }
+
+  if($s3_bucket)
+  {
+    my $basename = basename($file);
+    my @cmd = (qw(s3cmd put), "$file.torrent", "$s3_bucket/$basename.torrent");
+    system(@cmd) == 0
+      or warn "system @cmd failed: $?";
+  }
 }
