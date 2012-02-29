@@ -38,9 +38,6 @@ sub make_torrent($);
 
   my $prev_outname = undef;
 
-  make_torrent('/mnt/enormous/20120229/camera01_2012-29-02_23_00.ts');
-  die "ZZZ";
-
   while(1)
   {
     # generate filename to write to (hourly)
