@@ -44,7 +44,7 @@ sub make_torrent($);
     $ENV{'TZ'} = $uik_tz;
     my $now_string = strftime "%Y-%d-%m %H:%M:%S", localtime;
     my $out_name = "$target_dir/$target_basename" . (strftime "_%Y-%d-%m_%H_00.ts", localtime);
-    if ($prev_outname ne $out_name)
+    if ($prev_outname and ($prev_outname ne $out_name))
     {
       print "We're done with $prev_outname, let's calculate its torrent...";
       make_torrent($prev_outname);
