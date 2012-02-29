@@ -17,6 +17,8 @@ my $target_basename = 'camera01';
 # camera timezone:
 my $uik_tz = 'Asia/Krasnoyarsk';
 
+sub make_torrent($);
+
 {
   my $server = undef;
   if ($playlist_url =~ m!(http://[^/]+)/!)
@@ -28,17 +30,28 @@ my $uik_tz = 'Asia/Krasnoyarsk';
     die "weird playlist_url\n";
   }
 
+  my $prev_outname = undef;
+
+  make_torrent('/mnt/enormous/20120229/camera01_2012-29-02_23_00.ts');
+  die "ZZZ";
+
   while(1)
   {
     # generate filename to write to (hourly)
     $ENV{'TZ'} = $uik_tz;
     my $now_string = strftime "%Y-%d-%m %H:%M:%S", localtime;
     my $out_name = "$target_dir/$target_basename" . (strftime "_%Y-%d-%m_%H_00.ts", localtime);
+    if ($prev_outname ne $out_name)
+    {
+      print "We're done with $prev_outname, let's calculate its torrent...";
+      make_torrent($prev_outname);
+    }
+
     print "remote time is $now_string, writing to $out_name...\n";
 
     # get playlist
     my $playlist = get($playlist_url);
-    die "Couldn't get playlist!" unless defined $playlist;
+    warn "Couldn't get playlist!" unless defined $playlist;
 
     # get all files
     my @lines = split "\n", $playlist;
@@ -56,8 +69,20 @@ my $uik_tz = 'Asia/Krasnoyarsk';
       }
     }
 
-    # wait for time to pass (if any)
     # repeat
-    die "ZZZ";
+    $prev_outname = $out_name;
   }
+}
+
+sub make_torrent($)
+{
+  my ($file) = @_;
+  my @cmd = (qw(btmakemetafile.bittornado http://tracker.thepiratebay.org/announce),
+    $file,
+    qw(--announce_list http://tracker.thepiratebay.org/announce|udp://tracker.openbittorrent.com:80|udp://tracker.publicbt.com:80|udp://tracker.istole.it:80|udp://tracker.ccc.de:80|http://tracker.hexagon.cc:2710/announce)
+  );
+  use Data::Dumper;
+  print Dumper \@cmd;
+  system(@cmd) == 0
+    or warn "system @cmd failed: $?";
 }
