@@ -56,13 +56,14 @@ sub make_torrent($);
     my $playlist = get($playlist_url);
     warn "Couldn't get playlist!" unless defined $playlist;
 
+    my $stt = time;
+
     # get all files
     my @lines = split "\n", $playlist;
     foreach (@lines) {
       if (m!^/segment\.ts\?.*ts=([\d.]+)-([\d.]+)!)
       {
         my ($st, $et) = ($1, $2);
-        sleep 0.5 while (time < $st);
         my $segment_url = $server . $_;
         print "Getting $segment_url...\n";
         my $stream_data = get($segment_url);
@@ -71,8 +72,12 @@ sub make_torrent($);
         close OUT;
       }
     }
+    # wait for a minute to pass, repeat:
+    print "waiting for $stt+60, now it is ", time, "\n";
+    sleep 0.5 while (time < $stt+60);
+    # this timeout probably requires fixing - but for now all segments are 15 seconds,
+    # and there's new playlist every minute.
 
-    # repeat
     $prev_outname = $out_name;
   }
 }
