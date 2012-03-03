@@ -31,6 +31,22 @@ sub make_torrent($);
   # initialisation
   my $proxy = HTTP::Proxy->new( port => 5000 );
 
+  # fixes a common typo ;-)
+  # but chances are that this will modify a correct URL
+  {
+    package MyFilter;
+
+    use base qw( HTTP::Proxy::BodyFilter );
+
+    # a simple modification, that may break things
+    sub filter {
+      my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+      print $message->uri(), "\n";
+    }
+
+  }
+  $proxy->push_filter( request => MyFilter->new() );
+
   # this is a MainLoop-like method
   $proxy->start;
 }
