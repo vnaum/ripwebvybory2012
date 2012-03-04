@@ -7,16 +7,16 @@ use LWP::Simple;
 use File::Basename;
 
 # this one you can get with firebug or from proxy log files:
-my $playlist_url = 'http://188.254.112.50/variant.m3u8?cid=08ace5a8-46c5-11e1-be30-f0def1c2c06e&var=orig';
+my $playlist_url = '';
 
 # will dump files there:
-my $target_dir = '/mnt/enormous/20120229';
+my $target_dir = '.';
 
 # will add hourly timestamp there
-my $target_basename = 'camera01';
+my $target_basename = '803_ballot_box';
 
 # camera timezone:
-my $uik_tz = 'Asia/Krasnoyarsk';
+my $uik_tz = 'Asia/Omsk';
 
 # if you have s3 access and s3cmd installed/configured, I can upload torrent files to this bucket:
 my $s3_bucket = 's3://webvybory2012.vnaum.com';
@@ -74,7 +74,7 @@ sub make_torrent($);
     }
     # wait for a minute to pass, repeat:
     print "waiting for $stt+60, now it is ", time, "\n";
-    sleep 0.5 while (time < $stt+60);
+    sleep 1 while (time < $stt+60);
     # this timeout probably requires fixing - but for now all segments are 15 seconds,
     # and there's new playlist every minute.
 
